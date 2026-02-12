@@ -3,7 +3,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 import time
+import math
 
 # store board variables
 BOARD_WIDTH = 21
@@ -58,29 +60,13 @@ def main():
 		for i in state["snake"]:
 			snake_positions.append((i % 21, i // 21))
 
-		print(snake_positions)
-
-		# If snake's position hasn't updated yet (because the computer's just so dang fast), continue
-		#if (find_head.positions == snake_positions):
-			#continue
-
 		# determine snake's head and direction
-		'''
-		Every time the game starts the snake's direction is always downward, with a tail trailing behind it
-		Given this we can assume that the snake's direction is x=0, y=-1 
-		and head is the last value in the array...
-		Perhaps we can use this to remember and "store" the head and direction and any change with these 
-		values will tell us to then re-point to what the head of the snake is!
-		'''
-		#head = find_head(snake_positions)
+		head = find_head(snake_positions)
 
-		# orient snake towards ts
-		#key = next_move()
+		# orient snake towards food
+		key = next_move(head, food_pos)
 
-		#actions.send_keys(key).perform()
-
-		# Modify the find_head functional attribute for direction
-		#find_head.dir = [dir_x, dir_y] # this new direction value is determined from the next_move() function
+		actions.send_keys(key).perform()
 
 '''
 Overall sequence:
@@ -95,9 +81,9 @@ def find_head(positions):
 	if not hasattr(find_head, "prev_positions"):
 		find_head.prev_positions = positions
 		find_head.dir = [0, 1]
-		find_head.head = positions[-1]
 
 		# head is the last value in the positions array
+		find_head.head = positions[-1]
 		return positions[-1]
 
 	# find new cell position within the arrays (once snake moves, tail dissapears and head moves to new position)
@@ -107,7 +93,7 @@ def find_head(positions):
 
 	# if a new cell was found, our head is that new cell, but if no new cell was found, return the previous cell we found
 	if new_cell:
-		head = new_cell
+		head = new_cell.pop()
 		find_head.head = head
 	else:
 		head = find_head.head
@@ -117,8 +103,37 @@ def find_head(positions):
 
 	return head
 
-def next_move():
-	return 0
+def next_move(head, food):
+	MOVES = {
+	    Keys.ARROW_RIGHT: (1, 0),
+	    Keys.ARROW_LEFT: (-1, 0),
+	    Keys.ARROW_UP: (0, -1),
+	    Keys.ARROW_DOWN: (0, 1)
+	}
+
+	best_key = None
+	best_dist = float("inf")
+
+	for key, (dx, dy) in MOVES.items():
+		# skip if it tries to go "backwards"
+		backwards_pos = (-find_head.dir[0], -find_head.dir[1])
+		if (dx, dy) == backwards_pos:
+			continue
+
+		# determine distance of potential next position
+		next_pos = (head[0] + dx, head[1] + dy)
+		d = math.dist(next_pos, food)
+
+		# check if it brings us closer
+		if d < best_dist:
+			best_dist = d
+			best_key = key
+
+	# Modify the find_head functional attribute for direction
+	find_head.dir = [MOVES[best_key][0], MOVES[best_key][1]]
+
+	# return best_key... duh
+	return best_key
 
 if __name__ == "__main__":
 	main()
