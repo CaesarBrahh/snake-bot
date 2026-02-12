@@ -22,9 +22,9 @@ def main():
 	elem.click()
 
 	# wait until game actually starts (3 second countdown)
-	time.sleep(3)
+	time.sleep(2)
 	 
-	#while True:
+	while True:
 		# pull snake locations, pull food location
 		js = """
 			const cells = Array.from(document.querySelectorAll('.game .board .cell'));
@@ -58,18 +58,64 @@ def main():
 		for i in state["snake"]:
 			snake_positions.append((i % 21, i // 21))
 
-		print("food position: " + str(food_pos[0]) + ", " + str(food_pos[1]))
-		#print("snake positions" + snake_positions)
+		print(snake_positions)
 
-		# determine head
+		# If snake's position hasn't updated yet (because the computer's just so dang fast), continue
+		#if (find_head.positions == snake_positions):
+			#continue
 
-		# determine direction
+		# determine snake's head and direction
+		'''
+		Every time the game starts the snake's direction is always downward, with a tail trailing behind it
+		Given this we can assume that the snake's direction is x=0, y=-1 
+		and head is the last value in the array...
+		Perhaps we can use this to remember and "store" the head and direction and any change with these 
+		values will tell us to then re-point to what the head of the snake is!
+		'''
+		#head = find_head(snake_positions)
 
 		# orient snake towards ts
 		#key = next_move()
 
 		#actions.send_keys(key).perform()
 
+		# Modify the find_head functional attribute for direction
+		#find_head.dir = [dir_x, dir_y] # this new direction value is determined from the next_move() function
+
+'''
+Overall sequence:
+1. Get snake's positions and the food's position
+2. WE determine the snake's head and direction based off this new data
+3. We determine which move to make in order to bring us close to the food
+4. The key is sent
+'''
+
+def find_head(positions):
+	# check whether this function has any attributes (only true at the start of the game)
+	if not hasattr(find_head, "prev_positions"):
+		find_head.prev_positions = positions
+		find_head.dir = [0, 1]
+		find_head.head = positions[-1]
+
+		# head is the last value in the positions array
+		return positions[-1]
+
+	# find new cell position within the arrays (once snake moves, tail dissapears and head moves to new position)
+	prev = set(find_head.prev_positions)
+	curr = set(positions)
+	new_cell = curr - prev 
+
+	# if a new cell was found, our head is that new cell, but if no new cell was found, return the previous cell we found
+	if new_cell:
+		head = new_cell
+		find_head.head = head
+	else:
+		head = find_head.head
+
+	# set previous positions to given positions and head to head
+	find_head.prev_positions = positions
+
+	return head
 
 def next_move():
 	return 0
