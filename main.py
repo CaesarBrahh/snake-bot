@@ -64,46 +64,65 @@ def main():
 		head = find_head(snake_positions)
 
 		# orient snake towards food
-		key = next_move(head, food_pos)
+		key = greedy_algo(head, food_pos)
 
-		actions.send_keys(key).perform()
+		if key != None:
+			actions.send_keys(key).perform()
 
-'''
-Overall sequence:
-1. Get snake's positions and the food's position
-2. WE determine the snake's head and direction based off this new data
-3. We determine which move to make in order to bring us close to the food
-4. The key is sent
-'''
+def serpentine_scan(head):
+	MOVES = {
+	    Keys.ARROW_RIGHT: (1, 0),
+	    Keys.ARROW_LEFT: (-1, 0),
+	    Keys.ARROW_UP: (0, -1),
+	    Keys.ARROW_DOWN: (0, 1)
+	}
 
-def find_head(positions):
-	# check whether this function has any attributes (only true at the start of the game)
-	if not hasattr(find_head, "prev_positions"):
-		find_head.prev_positions = positions
-		find_head.dir = [0, 1]
+	key = None
 
-		# head is the last value in the positions array
-		find_head.head = positions[-1]
-		return positions[-1]
+	# scan mode = right (initial)
 
-	# find new cell position within the arrays (once snake moves, tail dissapears and head moves to new position)
-	prev = set(find_head.prev_positions)
-	curr = set(positions)
-	new_cell = curr - prev 
+	# if scan mode == right
+		# if going down
+			# if next step hits bottom wall
+				# key = left
+			# else
+				# key = down
+		# else if going left
+			# key = up
+		# else if going up
+			# if next step hits top wall
+				# key = right
+			# else
+				# key = bottom
+		# else if going right
+			# key = down
 
-	# if a new cell was found, our head is that new cell, but if no new cell was found, return the previous cell we found
-	if new_cell:
-		head = new_cell.pop()
-		find_head.head = head
-	else:
-		head = find_head.head
+		# if x = WIDTH
+			# switch to left scan
 
-	# set previous positions to given positions and head to head
-	find_head.prev_positions = positions
+	# if scan mode == left
+		# if going down
+			# if next step hits bottom wall
+				# key = right
+			# else
+				# key = down
+		# if going right
+			# key = up
+		# if going up
+			# if next step hit top wall
+				# key = left
+			# else
+				# key = up
+		# if going left
+			# key = down
 
-	return head
+		# if x == 0
+			# switch to right scan
 
-def next_move(head, food):
+
+	return key
+
+def greedy_algo(head, food):
 	MOVES = {
 	    Keys.ARROW_RIGHT: (1, 0),
 	    Keys.ARROW_LEFT: (-1, 0),
@@ -134,10 +153,38 @@ def next_move(head, food):
 			best_key = key
 
 	# Modify the find_head functional attribute for direction
-	find_head.dir = [MOVES[best_key][0], MOVES[best_key][1]]
+	if best_key != None:
+		find_head.dir = [MOVES[best_key][0], MOVES[best_key][1]]
 
 	# return best_key... duh
 	return best_key
+
+def find_head(positions):
+	# check whether this function has any attributes (only true at the start of the game)
+	if not hasattr(find_head, "prev_positions"):
+		find_head.prev_positions = positions
+		find_head.dir = [0, 1]
+
+		# head is the last value in the positions array
+		find_head.head = positions[-1]
+		return positions[-1]
+
+	# find new cell position within the arrays (once snake moves, tail dissapears and head moves to new position)
+	prev = set(find_head.prev_positions)
+	curr = set(positions)
+	new_cell = curr - prev 
+
+	# if a new cell was found, our head is that new cell, but if no new cell was found, return the previous cell we found
+	if new_cell:
+		head = new_cell.pop()
+		find_head.head = head
+	else:
+		head = find_head.head
+
+	# set previous positions to given positions and head to head
+	find_head.prev_positions = positions
+
+	return head
 
 if __name__ == "__main__":
 	main()
