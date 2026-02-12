@@ -124,6 +124,10 @@ def next_move(head, food):
 		next_pos = (head[0] + dx, head[1] + dy)
 		d = math.dist(next_pos, food)
 
+		# skip if next_pos is in the snake's current positions
+		if next_pos in find_head.prev_positions:
+			continue
+
 		# check if it brings us closer
 		if d < best_dist:
 			best_dist = d
