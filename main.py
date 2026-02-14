@@ -13,7 +13,7 @@ BOARD_HEIGHT = 15
 
 def main():
 	# open snake game
-	driver = webdriver.Chrome()
+	driver = webdriver.Safari()
 	actions = ActionChains(driver)
 	driver.get("http://playsnake.org")
 
